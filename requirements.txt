@@ -1,0 +1,18 @@
+# Python packages for the oMLX benchmark.  Install with:  pip install -r requirements.txt
+# Needs Python 3.11 or newer, on an Apple Silicon Mac.
+
+# the benchmark itself
+rich
+matplotlib
+huggingface_hub
+pyyaml
+mlx
+pyarrow
+
+# IFBench scorer (from the allenai/IFBench repo)
+absl-py
+langdetect
+nltk
+immutabledict
+emoji
+syllapy>=0.8.0

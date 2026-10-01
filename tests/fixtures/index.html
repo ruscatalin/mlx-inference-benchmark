@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>oMLX bench dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2/plotly.min.js"></script>
+<style>
+body { font-family: -apple-system, sans-serif; margin: 0; display: flex; background: #fafafa; }
+#sidebar { width: 260px; padding: 16px; border-right: 1px solid #ddd; background: #fff; overflow-y: auto; height: 100vh; }
+#main { flex: 1; padding: 16px; overflow-y: auto; height: 100vh; }
+.section { margin-bottom: 16px; }
+.section h4 { margin: 4px 0; }
+label { display: block; font-size: 13px; margin: 2px 0; }
+.tabs { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+.tab { padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: #eee; font-size: 13px; }
+.tab.active { background: #4C72B0; color: white; }
+.panel { display: none; }
+.panel.active { display: block; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: right; }
+th { cursor: pointer; background: #f0f0f0; }
+th:first-child, td:first-child { text-align: left; }
+.warning { background: #fff3cd; padding: 8px; border-radius: 4px; margin-bottom: 12px; }
+.chart { width: 100%; height: 480px; }
+.chart3d { height: 620px; margin-top: 12px; }
+details.section > summary { cursor: pointer; margin-bottom: 8px; }
+.note { font-size: 12px; color: #666; margin-top: 4px; }
+.section ul { margin: 4px 0 12px; padding-left: 20px; }
+</style>
+</head>
+<body>
+<div id="sidebar">
+  <h3>Runs</h3>
+  <div id="runList" class="section"></div>
+  <h3>Models</h3>
+  <div id="modelList" class="section"></div>
+  <h3>Profiles</h3>
+  <div id="profileList" class="section"></div>
+</div>
+<div id="main">
+  <div id="warningBanner"></div>
+  <div class="tabs" id="tabs"></div>
+  <div id="panels"></div>
+</div>
+<script id="data" type="application/json">{"runs": [{"run_id": "run_min", "started": "2026-09-01T09:00:00", "host": {"chip": "Apple M3 Max", "mem_gb": 128, "macos": "15.0"}, "omlx_version": "0.9.0", "pricing": {"region": "NL", "price_kwh": 0.3, "currency": "EUR", "source": "static estimate, verify", "estimate": true}, "models": {"mlx4": {"repo": "mlx-community/gemma-4-26B-A4B-it-qat-4bit", "settings": {}, "color": "#4C72B0"}, "oq4e-mtp": {"repo": "bambocher/gemma-4-26B-A4B-it-qat-oQ4e-mtp", "settings": {"mtp_enabled": true}, "color": "#55A868"}}, "profiles": {"baseline": {"server": {"hot_cache_max_size": "2GB"}, "model_settings": {}}, "kv4": {"server": {"hot_cache_max_size": "2GB"}, "model_settings": {"turboquant_kv_enabled": true, "turboquant_kv_bits": 4}}}, "rows": [{"model": "mlx4", "profile": "baseline", "c": 1, "total": 42.75, "total_lo": 33.2205, "total_hi": 52.2795, "req": 44.15625, "req_lo": 43.44, "req_hi": 44.92125, "tokJ": 3.6, "eligible": true}, {"model": "mlx4", "profile": "baseline", "c": 2, "total": 78.75, "total_lo": 69.2205, "total_hi": 88.2795, "req": 40.56375, "req_lo": 40.265, "req_hi": 40.83375, "tokJ": 3.4, "eligible": true}, {"model": "mlx4", "profile": "baseline", "c": 4, "total": 130.75, "total_lo": 121.2205, "total_hi": 140.27949999999998, "req": 33.3875, "req_lo": 33.151250000000005, "req_hi": 33.66125, "tokJ": 3.0, "eligible": true}, {"model": "mlx4", "profile": "kv4", "c": 1, "total": 45.75, "total_lo": 36.2205, "total_hi": 55.2795, "req": 47.685, "req_lo": 47.0125, "req_hi": 48.385, "tokJ": 4.0, "eligible": true}, {"model": "mlx4", "profile": "kv4", "c": 2, "total": 85.75, "total_lo": 76.2205, "total_hi": 95.2795, "req": 44.52875, "req_lo": 44.18875, "req_hi": 44.90375, "tokJ": 3.8, "eligible": true}, {"model": "mlx4", "profile": "kv4", "c": 4, "total": 140.75, "total_lo": 131.22050000000002, "total_hi": 150.27949999999998, "req": 36.2025, "req_lo": 35.97625, "req_hi": 36.425, "tokJ": 3.5, "eligible": true}, {"model": "oq4e-mtp", "profile": "baseline", "c": 1, "total": 61.0, "total_lo": 48.294, "total_hi": 73.706, "req": 64.125, "req_lo": 63.21125, "req_hi": 64.96625, "tokJ": 5.5, "eligible": true}], "quality": [{"model": "mlx4", "profile": "baseline", "score": 0.65, "score_ci": [0.55, 0.75], "prompt_loose": 0.65, "prompt_loose_ci": [0.55, 0.75]}, {"model": "mlx4", "profile": "kv4", "score": 0.85, "score_ci": [0.75, 0.95], "prompt_loose": 0.85, "prompt_loose_ci": [0.75, 0.95]}], "prefix": [], "recommendations": {"multi": {"model": "mlx4", "profile": "kv4", "c": 4}, "single": {"model": "mlx4", "profile": "kv4", "c": 1}, "cheapest": {"model": "oq4e-mtp", "profile": "baseline", "c": 1}, "pareto3": [{"model": "mlx4", "profile": "kv4", "c": 1}, {"model": "mlx4", "profile": "kv4", "c": 2}, {"model": "mlx4", "profile": "kv4", "c": 4}, {"model": "oq4e-mtp", "profile": "baseline", "c": 1}], "quality": {"model": "mlx4", "profile": "kv4", "score": 0.85, "score_ci": [0.75, 0.95], "prompt_loose": 0.85, "prompt_loose_ci": [0.75, 0.95]}}}]}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const TABS = ["Speed", "Cost", "Quality", "Prefix cache", "Trade-off", "Table", "Recommendations", "Profiles"];
+let state = { runs: new Set(), models: new Set(), profiles: new Set(), tab: "Speed", sortCol: null, sortAsc: true };
+
+function dash(i) { return ["solid", "dash", "dot", "dashdot"][i % 4]; }
+
+function round3(x) { return (typeof x === 'number' && isFinite(x)) ? Math.round(x * 1000) / 1000 : x; }
+
+function note(text) { return `<div class="note">${text}</div>`; }
+
+const C_NOTE = 'C = concurrent requests: the number of requests the client sends in parallel, which is also ' +
+  'passed to the server at startup as its --max-concurrent-requests setting for that config.';
+
+function init() {
+  DATA.runs.sort((a, b) => (b.started || "").localeCompare(a.started || ""));
+  if (DATA.runs.length) state.runs.add(DATA.runs[0].run_id);
+  renderSidebar();
+  renderTabs();
+  render();
+}
+
+function allSelectedRuns() { return DATA.runs.filter(r => state.runs.has(r.run_id)); }
+
+function renderSidebar() {
+  const runList = document.getElementById('runList');
+  runList.innerHTML = '';
+  DATA.runs.forEach(r => {
+    const id = 'run_' + r.run_id;
+    const div = document.createElement('label');
+    div.innerHTML = `<input type="checkbox" id="${id}" ${state.runs.has(r.run_id) ? 'checked' : ''}> ${r.run_id}`;
+    div.querySelector('input').onchange = e => {
+      if (e.target.checked) state.runs.add(r.run_id); else state.runs.delete(r.run_id);
+      refreshFilters(); render();
+    };
+    runList.appendChild(div);
+  });
+  refreshFilters();
+}
+
+function refreshFilters() {
+  const sel = allSelectedRuns();
+  const models = new Set(); const profiles = new Set();
+  sel.forEach(r => { Object.keys(r.models || {}).forEach(m => models.add(m)); Object.keys(r.profiles || {}).forEach(p => profiles.add(p)); });
+  if (state.models.size === 0) state.models = new Set(models);
+  if (state.profiles.size === 0) state.profiles = new Set(profiles);
+  const modelList = document.getElementById('modelList'); modelList.innerHTML = '';
+  models.forEach(m => {
+    const div = document.createElement('label');
+    div.innerHTML = `<input type="checkbox" ${state.models.has(m) ? 'checked' : ''}> ${m}`;
+    div.querySelector('input').onchange = e => { if (e.target.checked) state.models.add(m); else state.models.delete(m); render(); };
+    modelList.appendChild(div);
+  });
+  const profileList = document.getElementById('profileList'); profileList.innerHTML = '';
+  profiles.forEach(p => {
+    const div = document.createElement('label');
+    div.innerHTML = `<input type="checkbox" ${state.profiles.has(p) ? 'checked' : ''}> ${p}`;
+    div.querySelector('input').onchange = e => { if (e.target.checked) state.profiles.add(p); else state.profiles.delete(p); render(); };
+    profileList.appendChild(div);
+  });
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = '';
+  TABS.forEach(t => {
+    const d = document.createElement('div');
+    d.className = 'tab' + (t === state.tab ? ' active' : '');
+    d.textContent = t;
+    d.onclick = () => { state.tab = t; render(); };
+    tabs.appendChild(d);
+  });
+}
+
+function warnBanner(sel) {
+  const banner = document.getElementById('warningBanner');
+  if (sel.length < 2) { banner.innerHTML = ''; return; }
+  const fields = ['host', 'omlx_version'];
+  const diffs = [];
+  fields.forEach(f => {
+    const vals = new Set(sel.map(r => JSON.stringify(r[f])));
+    if (vals.size > 1) diffs.push(f);
+  });
+  banner.innerHTML = diffs.length ? `<div class="warning">Selected runs differ in: ${diffs.join(', ')}</div>` : '';
+}
+
+function filteredRows(r) {
+  return (r.rows || []).filter(row => state.models.has(row.model) && state.profiles.has(row.profile));
+}
+
+const PALETTE = ["#1F77B4", "#FF7F0E", "#2CA02C", "#D62728", "#9467BD", "#8C564B", "#E377C2", "#7F7F7F", "#BCBD22", "#17BECF",
+                 "#0B3C5D", "#F2B701", "#00A86B", "#FF5A8C", "#6A3D9A", "#B15928", "#66C2A5", "#E7298A", "#8DA0CB", "#666600"];
+
+const colorAssignments = new Map();
+
+function colorFor(key) {
+  if (!colorAssignments.has(key)) colorAssignments.set(key, PALETTE[colorAssignments.size % PALETTE.length]);
+  return colorAssignments.get(key);
+}
+
+function seriesKey(model, profile) { return model + '/' + profile; }
+
+function render() {
+  renderTabs();
+  const sel = allSelectedRuns();
+  warnBanner(sel);
+  const panels = document.getElementById('panels');
+  panels.innerHTML = '<div id="chart" class="chart"></div><div id="caption"></div>';
+  const el = document.getElementById('chart');
+  if (state.tab === "Speed") return renderSpeed(sel, el);
+  if (state.tab === "Cost") return renderCost(sel, el);
+  if (state.tab === "Quality") return renderQuality(sel, el);
+  if (state.tab === "Prefix cache") return renderPrefix(sel, el);
+  if (state.tab === "Trade-off") return renderTradeoff(sel, el);
+  if (state.tab === "Table") return renderTable(sel);
+  if (state.tab === "Recommendations") return renderRecs(sel);
+  if (state.tab === "Profiles") return renderProfiles(sel);
+}
+
+function seriesTraces(sel, yKey, loKey, hiKey) {
+  const traces = [];
+  let dashIdx = {};
+  sel.forEach(r => {
+    const rows = filteredRows(r);
+    const byKey = {};
+    rows.forEach(row => { const k = row.model + '/' + row.profile; (byKey[k] = byKey[k] || []).push(row); });
+    Object.entries(byKey).forEach(([k, rs]) => {
+      rs.sort((a, b) => a.c - b.c);
+      const model = rs[0].model, profile = rs[0].profile;
+      const col = colorFor(seriesKey(model, profile));
+      dashIdx[model] = dashIdx[model] || 0;
+      const dashStyle = profile === 'baseline' ? 'solid' : dash((dashIdx[model]++ ) + 1);
+      const mode = rs.length > 1 ? 'lines+markers' : 'markers';
+      const marker = rs.length > 1 ? { color: col } : { color: col, symbol: 'circle-open', size: 12, line: { width: 2 } };
+      traces.push({
+        x: rs.map(x => x.c), y: rs.map(x => round3(x[yKey])), name: `${r.run_id.slice(-6)} ${k}`,
+        mode, type: 'scatter', line: { color: col, dash: dashStyle },
+        marker,
+        error_y: loKey ? { type: 'data', array: rs.map(x => round3((x[hiKey] - x[yKey]) || 0)), arrayminus: rs.map(x => round3((x[yKey] - x[loKey]) || 0)) } : undefined,
+      });
+    });
+  });
+  return traces;
+}
+
+function renderSpeed(sel, el) {
+  const totalTraces = seriesTraces(sel, 'total', 'total_lo', 'total_hi');
+  Plotly.newPlot(el, totalTraces, { title: 'Total tok/s vs C', xaxis: { title: 'C' }, yaxis: { title: 'tok/s' } });
+  document.getElementById('caption').innerHTML = note(C_NOTE);
+}
+
+function renderCost(sel, el) {
+  const rows = sel.flatMap(r => filteredRows(r).map(row => ({ ...row, price: (r.pricing || {}).price_kwh || 0 })));
+  const byKey = {};
+  rows.forEach(row => { const k = row.model + '/' + row.profile; (byKey[k] = byKey[k] || []).push(row); });
+  let dashIdx = {};
+  const traces = Object.entries(byKey).map(([k, rs]) => {
+    rs.sort((a, b) => a.c - b.c);
+    const model = rs[0].model, profile = rs[0].profile;
+    dashIdx[model] = dashIdx[model] || 0;
+    const dashStyle = profile === 'baseline' ? 'solid' : dash((dashIdx[model]++ ) + 1);
+    return { x: rs.map(r => r.c), y: rs.map(r => r.tokJ ? round3(r.price / (r.tokJ * 3.6e6) * 1e6) : null),
+             name: k, mode: 'lines+markers', type: 'scatter', line: { color: colorFor(k), dash: dashStyle } };
+  });
+  Plotly.newPlot(el, traces, { title: '€/Mtok vs C', xaxis: { title: 'C' }, yaxis: { title: '€/Mtok' } });
+  document.getElementById('caption').innerHTML = note(C_NOTE);
+}
+
+const Q_LABEL = 'Quality score (%) = 50% IF loose + 50% MMLU-Pro';
+
+function renderQuality(sel, el) {
+  const rows = sel.flatMap(r => (r.quality || []).filter(q => state.models.has(q.model) && state.profiles.has(q.profile)));
+  const bars = [['score', 'Quality score', 1], ['prompt_loose', 'IF loose', 0.6], ['mmlu', 'MMLU-Pro', 0.35]];
+  const traces = bars.filter(([k]) => rows.some(r => r[k] !== undefined)).map(([k, name, opacity]) => {
+    const rs = rows.filter(r => r[k] !== undefined);
+    return {
+      x: rs.map(r => r.model + '/' + r.profile), y: rs.map(r => round3(100 * r[k])), type: 'bar', name, opacity,
+      error_y: { type: 'data', array: rs.map(r => round3(100 * r[k + '_ci'][1] - 100 * r[k])),
+                 arrayminus: rs.map(r => round3(100 * r[k] - 100 * r[k + '_ci'][0])) },
+      marker: { color: rs.map(r => colorFor(seriesKey(r.model, r.profile))) },
+    };
+  });
+  Plotly.newPlot(el, traces, { title: 'Quality per model/profile (95% CI)', barmode: 'group', yaxis: { title: '%' } });
+  document.getElementById('caption').innerHTML = note(Q_LABEL + ' — higher is better. MMLU-Pro uses the ' +
+    'math/physics/engineering/computer-science questions; older runs without MMLU-Pro score on IF loose alone.');
+}
+
+function renderPrefix(sel, el) {
+  const rows = sel.flatMap(r => (r.prefix || []).filter(p => state.models.has(p.model) && state.profiles.has(p.profile)));
+  const traces = [
+    { x: rows.map(r => r.model + '/' + r.profile + ' C' + r.c), y: rows.map(r => round3(r.cold_ttft)), name: 'Uncached TTFT', type: 'bar' },
+    { x: rows.map(r => r.model + '/' + r.profile + ' C' + r.c), y: rows.map(r => round3(r.warm_ttft)), name: 'Cached TTFT', type: 'bar' },
+  ];
+  Plotly.newPlot(el, traces, { title: 'Uncached vs cached TTFT (prompt-prefix cache)', barmode: 'group', yaxis: { title: 'seconds' } });
+  document.getElementById('caption').innerHTML = note(C_NOTE + ' "Cached" means the prompt prefix was already in the server\'s cache from a prior turn.');
+}
+
+function renderTradeoff(sel, el) {
+  const rows = sel.flatMap(r => filteredRows(r).map(row => ({ ...row, price: (r.pricing || {}).price_kwh || 0 })).filter(x => x.eligible));
+  const q = {};
+  sel.forEach(r => (r.quality || []).forEach(x => { q[x.model + '/' + x.profile] = x.score; }));
+  const colors = rows.map(r => colorFor(seriesKey(r.model, r.profile)));
+  const traces = [{
+    x: rows.map(r => round3(r.total)), y: rows.map(r => round3(100 * (q[r.model + '/' + r.profile] || 0))),
+    text: rows.map(r => `${r.model}/${r.profile} C=${r.c}`), mode: 'markers', type: 'scatter',
+    marker: { color: colors, size: 10 },
+  }];
+  Plotly.newPlot(el, traces, { title: 'Quality vs total tok/s', xaxis: { title: 'tok/s' }, yaxis: { title: Q_LABEL } });
+
+  const panels = document.getElementById('panels');
+  const chart3d = document.createElement('div');
+  chart3d.id = 'chart3d';
+  chart3d.className = 'chart chart3d';
+  panels.insertBefore(chart3d, document.getElementById('caption'));
+  const traces3d = [{
+    x: rows.map(r => round3(r.total)), y: rows.map(r => round3(100 * (q[r.model + '/' + r.profile] || 0))),
+    z: rows.map(r => round3(r.tokJ ? r.price / (r.tokJ * 3.6e6) * 1e6 : null)),
+    text: rows.map(r => `${r.model}/${r.profile} C=${r.c}`), mode: 'markers', type: 'scatter3d',
+    marker: { color: colors, size: 5 },
+  }];
+  Plotly.newPlot(chart3d, traces3d, {
+    title: 'Speed vs quality vs cost',
+    margin: { l: 10, r: 10, t: 40, b: 10 },
+    scene: {
+      xaxis: { title: 'tok/s' }, yaxis: { title: 'quality %' }, zaxis: { title: '€/Mtok' },
+      aspectmode: 'cube',
+    },
+  }, { responsive: true });
+
+  document.getElementById('caption').innerHTML =
+    note(C_NOTE + ' ' + Q_LABEL + ' — higher is better. Quality is measured once per ' +
+         'model/profile, independent of C, so the same quality value repeats across every C for that ' +
+         'model/profile — that is expected, not a bug.');
+}
+
+function renderTable(sel) {
+  const rows = sel.flatMap(r => {
+    const q = {};
+    (r.quality || []).forEach(x => { q[x.model + '/' + x.profile] = x; });
+    return filteredRows(r).map(row => {
+      const x = q[row.model + '/' + row.profile] || {};
+      const pc = k => x[k] === undefined ? undefined : 100 * x[k];
+      return { run: r.run_id, ...row, quality: pc('score'), if_loose: pc('prompt_loose'), mmlu_pro: pc('mmlu') };
+    });
+  });
+  const cols = ['run', 'model', 'profile', 'c', 'total', 'req', 'quality', 'if_loose', 'mmlu_pro', 'tokJ', 'eligible'];
+  if (state.sortCol) {
+    rows.sort((a, b) => {
+      const av = a[state.sortCol], bv = b[state.sortCol];
+      if (av === bv) return 0;
+      return (av > bv ? 1 : -1) * (state.sortAsc ? 1 : -1);
+    });
+  }
+  let html = note(C_NOTE + ' Values rounded to 3 decimals.') +
+    '<table><thead><tr>' + cols.map(c => `<th data-col="${c}">${c}</th>`).join('') + '</tr></thead><tbody>';
+  rows.forEach(r => { html += '<tr>' + cols.map(c => `<td>${r[c] === undefined || r[c] === null ? '-' : round3(r[c])}</td>`).join('') + '</tr>'; });
+  html += '</tbody></table>';
+  document.getElementById('panels').innerHTML = html;
+  document.querySelectorAll('th').forEach(th => th.onclick = () => {
+    const c = th.dataset.col;
+    state.sortAsc = state.sortCol === c ? !state.sortAsc : true;
+    state.sortCol = c;
+    renderTable(sel);
+  });
+}
+
+// ---- Recommendations pooled over every selected run --------------------------------------------
+// Same rules as stats.recommend(), applied to the runs' pooled numbers: speed and tokens/J are averaged
+// over the runs that measured each config, quality is inverse-variance weighted, and a config counts as "not clearly worse" than
+// the best-quality one when their score gap is within the combined 95% CI half-widths.
+const TIE_MARGIN = 0.05;
+const meanOf = xs => xs.reduce((a, b) => a + b, 0) / xs.length;
+const costPerMtok = (price, tokJ) => (price && tokJ) ? price / (tokJ * 3.6e6) * 1e6 : null;
+
+function kneeIndex(xs, ys, minGain = 0.05) {
+  const n = xs.length;
+  if (n < 3 || xs[n - 1] === xs[0] || ys[n - 1] <= ys[0]) return null;
+  let bi = 1, bd = -Infinity;
+  for (let i = 1; i < n - 1; i++) {
+    const d = (ys[i] - ys[0]) / (ys[n - 1] - ys[0]) - (xs[i] - xs[0]) / (xs[n - 1] - xs[0]);
+    if (d > bd) { bd = d; bi = i; }
+  }
+  return bd >= minGain ? bi : null;
+}
+
+function throughputKnee(rows) {
+  let rs = rows.filter(r => r.total);
+  if (rs.length < 3) return null;
+  const peak = rs.reduce((bi, r, i) => r.total > rs[bi].total ? i : bi, 0);
+  rs = rs.slice(0, peak + 1);
+  if (rs.length < 3) return rs.length === 2 ? rs[1] : null;
+  const i = kneeIndex(rs.map(r => Math.log2(r.c)), rs.map(r => r.total));
+  return i === null ? null : rs[i];
+}
+
+function combinedRecs(runs) {
+  const keep = x => state.models.has(x.model) && state.profiles.has(x.profile);
+  const groups = new Map();
+  runs.forEach(run => (run.rows || []).filter(keep).forEach(r => {
+    const k = [r.model, r.profile, r.c].join('|');
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push({ ...r, price: (run.pricing || {}).price_kwh });
+  }));
+  const by = new Map();   // "model|profile" -> pooled rows sorted by C
+  groups.forEach(rs => {
+    const def = f => rs.map(r => r[f]).filter(v => typeof v === 'number' && isFinite(v) && v > 0);
+    const req = def('req'), tokJ = def('tokJ'), prices = def('price');
+    const row = { model: rs[0].model, profile: rs[0].profile, c: rs[0].c, total: def('total').length ? meanOf(def('total')) : null,
+                  req: req.length ? meanOf(req) : null, tokJ: tokJ.length ? meanOf(tokJ) : null,
+                  price: prices.length ? meanOf(prices) : 0, eligible: rs.every(r => r.eligible) };
+    const k = row.model + '|' + row.profile;
+    if (!by.has(k)) by.set(k, []);
+    by.get(k).push(row);
+  });
+  by.forEach(rs => rs.sort((a, b) => a.c - b.c));
+
+  const qs = new Map();
+  runs.forEach(run => (run.quality || []).filter(keep).forEach(x => {
+    const k = x.model + '|' + x.profile;
+    if (!qs.has(k)) qs.set(k, []);
+    qs.get(k).push(x);
+  }));
+  const q = new Map();
+  qs.forEach((xs, k) => {
+    // inverse-variance weighting: runs with wide confidence intervals (few prompts) count for less
+    const hws = xs.map(x => Math.max(x.score_ci ? (x.score_ci[1] - x.score_ci[0]) / 2 : 0.5, 0.01));
+    const w = hws.map(h => 1 / (h * h)), wsum = w.reduce((a, b) => a + b, 0);
+    const avg = f => {
+      const v = xs.map((x, i) => [x[f], w[i]]).filter(([t]) => typeof t === 'number');
+      return v.length ? v.reduce((a, [t, wi]) => a + t * wi, 0) / v.reduce((a, [, wi]) => a + wi, 0) : undefined;
+    };
+    q.set(k, { model: xs[0].model, profile: xs[0].profile, score: avg('score'), hw: 1 / Math.sqrt(wsum),
+               prompt_loose: avg('prompt_loose'), mmlu: avg('mmlu') });
+  });
+
+  // per config: eligible rows, the best (lowest C within the tie margin of the top) and the knee
+  const info = new Map();
+  by.forEach((rs, k) => {
+    const elig = rs.filter(r => r.eligible && r.total);
+    if (!elig.length) return;
+    const top = elig.reduce((b, r) => r.total > b.total ? r : b, elig[0]);
+    const tied = elig.filter(r => (top.total - r.total) / top.total <= TIE_MARGIN);
+    info.set(k, { rows: rs, best: tied.reduce((b, r) => r.c < b.c ? r : b, tied[0]), knee: throughputKnee(elig) });
+  });
+
+  const rec = {};
+  let eligible = [...info.keys()];
+  if (!eligible.length) return rec;
+  const vq = eligible.filter(k => q.has(k) && q.get(k).score !== undefined);
+  if (vq.length) {
+    const topK = vq.reduce((b, k) => q.get(k).score > q.get(b).score ? k : b, vq[0]);
+    const t = q.get(topK);
+    rec.quality = { ...t };
+    eligible = [topK, ...vq.filter(k => {
+      if (k === topK) return false;
+      const x = q.get(k);
+      return t.score - x.score <= Math.sqrt(t.hw ** 2 + x.hw ** 2);
+    })];
+  }
+  const multi = eligible.filter(k => info.get(k).rows.length > 1);
+  const cands = (multi.length ? multi : eligible).map(k => info.get(k).knee || info.get(k).best);
+  const m = cands.reduce((b, r) => r.total > b.total ? r : b, cands[0]);
+  rec.multi = { model: m.model, profile: m.profile, c: m.c };
+  const c1 = eligible.flatMap(k => info.get(k).rows.filter(r => r.c === 1 && r.req));
+  if (c1.length) {
+    const s1 = c1.reduce((b, r) => r.req > b.req ? r : b, c1[0]);
+    rec.single = { model: s1.model, profile: s1.profile, c: 1 };
+  }
+  const all = [...by.values()].flat();
+  const costed = all.filter(r => r.eligible && r.tokJ && r.price);
+  if (costed.length) {
+    const ch = costed.reduce((b, r) => costPerMtok(r.price, r.tokJ) < costPerMtok(b.price, b.tokJ) ? r : b, costed[0]);
+    rec.cheapest = { model: ch.model, profile: ch.profile, c: ch.c };
+  }
+  const pts = all.filter(r => r.total && r.eligible).map(r => {
+    const x = q.get(r.model + '|' + r.profile);
+    return { t: r.total, q: x && x.score !== undefined ? 100 * x.score : 0, c: costPerMtok(r.price, r.tokJ) || 0, r };
+  });
+  rec.pareto3 = pts.filter(p => !pts.some(o => o.t >= p.t && o.q >= p.q && o.c <= p.c && (o.t > p.t || o.q > p.q || o.c < p.c)))
+    .map(p => ({ model: p.r.model, profile: p.r.profile, c: p.r.c }));
+  return rec;
+}
+
+function recHtml(rec) {
+  let html = '<ul>';
+  html += rec.multi
+    ? `<li>For multiple concurrent users: run <b>${rec.multi.model}/${rec.multi.profile}</b> at C=${rec.multi.c}.</li>`
+    : '<li>No multi-user recommendation (not enough eligible data).</li>';
+  html += rec.single
+    ? `<li>For a single user: run <b>${rec.single.model}/${rec.single.profile}</b> at C=1.</li>`
+    : '<li>No single-user recommendation (not enough eligible data).</li>';
+  if (rec.cheapest) {
+    html += `<li>Cheapest per token: <b>${rec.cheapest.model}/${rec.cheapest.profile}</b> at C=${rec.cheapest.c}.</li>`;
+  }
+  if (rec.quality) {
+    const x = rec.quality, pc = k => round3(100 * x[k]);
+    const parts = [['prompt_loose', 'IF loose'], ['mmlu', 'MMLU-Pro']].filter(([k]) => x[k] !== undefined)
+      .map(([k, lbl]) => `${pc(k)}% ${lbl}`).join(', ');
+    html += `<li>Best quality: <b>${x.model}/${x.profile}</b> at a ${pc('score')}% quality score (${parts}).</li>`;
+  }
+  if (rec.pareto3 && rec.pareto3.length) {
+    const picks = rec.pareto3.map(p => `${p.model}/${p.profile} (C=${p.c})`).join(', ');
+    html += `<li>Best trade-offs across speed, quality, and cost together: ${picks}.</li>`;
+  }
+  return html + '</ul>';
+}
+
+function renderRecs(sel) {
+  let html = '<div>' + note(C_NOTE);
+  if (sel.length > 1) {
+    html += `<div class="section"><h4>All ${sel.length} selected runs combined</h4>` + recHtml(combinedRecs(sel)) +
+      note('Speed and energy are averaged over the runs that measured each config; quality is averaged with more weight on runs that have tighter confidence intervals. The model and profile ' +
+           'filters on the left apply. A config counts as not clearly worse on quality when its score gap to the ' +
+           'best is within the combined 95% confidence half-widths (an approximation of the per-run paired test).') +
+      '</div>';
+  }
+  const perRun = sel.map(r => `<div class="section"><h4>${r.run_id}</h4>` + recHtml(r.recommendations || {}) + '</div>').join('');
+  html += sel.length > 1
+    ? `<details class="section"><summary><b>Individual runs recommendations</b> (${sel.length})</summary>${perRun}</details>`
+    : perRun;
+  html += '</div>';
+  document.getElementById('panels').innerHTML = html;
+}
+
+function humanKey(k) { return k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
+
+function describeServer(server) {
+  const out = [];
+  if (server.no_cache) out.push('Prompt caching is disabled entirely.');
+  if (server.hot_cache_max_size) out.push(`Hot (RAM) cache up to ${server.hot_cache_max_size}.`);
+  if (server.hot_cache_only) out.push('Cache stays in RAM only — no SSD paging.');
+  if (server.paged_ssd_cache_max_size) out.push(`SSD-backed paged cache up to ${server.paged_ssd_cache_max_size}.`);
+  if (server.hot_cache_write_through) out.push('Cache writes go through to disk immediately (write-through).');
+  if (server.initial_cache_blocks) out.push(`Pre-allocates ${server.initial_cache_blocks} cache block(s) at startup.`);
+  return out;
+}
+
+function renderProfiles(sel) {
+  const profiles = {};
+  sel.forEach(r => Object.entries(r.profiles || {}).forEach(([name, p]) => { profiles[name] = p; }));
+  let html = '<div>';
+  const names = Object.keys(profiles).sort();
+  if (!names.length) html += '<p>No profile metadata in the selected runs.</p>';
+  names.forEach(name => {
+    const p = profiles[name];
+    const serverLines = describeServer(p.server || {});
+    const modelLines = Object.entries(p.model_settings || {}).map(([k, v]) => `${humanKey(k)}: ${v}`);
+    html += `<div class="section"><h4>${name}</h4><ul>`;
+    if (!serverLines.length && !modelLines.length) {
+      html += "<li>Uses the server's default settings — no cache or model overrides.</li>";
+    }
+    serverLines.forEach(l => { html += `<li>${l}</li>`; });
+    modelLines.forEach(l => { html += `<li>Model setting — ${l}</li>`; });
+    html += '</ul></div>';
+  });
+  html += '</div>';
+  document.getElementById('panels').innerHTML = html;
+}
+
+init();
+</script>
+</body>
+</html>

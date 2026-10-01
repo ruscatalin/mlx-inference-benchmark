@@ -1,0 +1,46 @@
+model_root: ~/models/omlx-bench          # download dir
+
+models:
+  mlx4:
+    repo: mlx-community/gemma-4-26B-A4B-it-qat-4bit
+    color: "#4C72B0"
+  oq4e:
+    repo: bambocher/gemma-4-26B-A4B-it-qat-oQ4e-mtp
+    color: "#DD8452"
+    settings: {mtp_enabled: false}
+  oq4e-mtp:
+    repo: bambocher/gemma-4-26B-A4B-it-qat-oQ4e-mtp
+    color: "#55A868"
+    settings: {mtp_enabled: true}
+
+profiles:
+  baseline:   {server: {hot_cache_max_size: 2GB}}
+  kv8:        {server: {hot_cache_max_size: 2GB}, model_settings: {turboquant_kv_enabled: true, turboquant_kv_bits: 8}}
+  kv4:        {server: {hot_cache_max_size: 2GB}, model_settings: {turboquant_kv_enabled: true, turboquant_kv_bits: 4}}
+  no-cache:   {server: {no_cache: true}}
+  hot0-ssd:   {server: {hot_cache_max_size: "0", paged_ssd_cache_max_size: 20GB}}
+  hot8-ssd:   {server: {hot_cache_max_size: 8GB, paged_ssd_cache_max_size: 20GB}}
+  ram-only:   {server: {hot_cache_max_size: 8GB, hot_cache_only: true}}
+  write-thru: {server: {hot_cache_max_size: 2GB, hot_cache_write_through: true}}
+  blocks1024: {server: {hot_cache_max_size: 2GB, initial_cache_blocks: 1024}}
+
+presets:
+  # `default` is built in: an IFBench + MMLU-Pro quality stage, then a speed stage over --levels, both on --profiles.
+  # tradeoff:
+  #     - {name: quality, profiles: [baseline, kv8, kv4]}
+  #     - {name: speed,   profiles: [baseline, kv8, kv4], workload: ifbench, levels: [1, 2, 3, 4, 6, 8]}
+  baseline_quality:   # IFBench + MMLU-Pro
+    quality_c: 8      # concurrency; --quality-c overrides it
+    stages:
+      - {name: quality, profiles: [baseline]}
+
+  baseline_speed:
+    stages:
+      - {name: speed,   profiles: [baseline], levels: [1, 2, 4, 8]}
+
+  exhaustive:
+    stages:
+      - {name: quality, profiles: [baseline, kv8, kv4]}
+      - {name: speed,   profiles: [baseline, kv8, kv4], workload: ifbench, levels: [1, 2, 3, 4, 6, 8]}
+      # - {name: cache,   profiles: [baseline, no-cache, hot0-ssd, hot8-ssd, ram-only, write-thru, blocks1024],
+      #    workload: prefix, levels: [1, knee]}

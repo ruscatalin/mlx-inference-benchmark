@@ -1,0 +1,8 @@
+__pycache__/
+.DS_Store
+.venv/
+.mypy_cache/
+.ruff_cache/
+.claude/
+runs/
+!tests/fixtures/

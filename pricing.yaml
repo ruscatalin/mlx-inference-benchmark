@@ -1,0 +1,6 @@
+default_region: NL
+currency: EUR
+regions:
+  NL: {price_kwh: 0.29, currency: EUR, source: "static estimate, verify", as_of: "2026-01"}
+  DE: {price_kwh: 0.35, currency: EUR, source: "static estimate, verify", as_of: "2026-01"}
+  RO: {price_kwh: 0.25, currency: EUR, source: "static estimate, verify", as_of: "2026-01"}
